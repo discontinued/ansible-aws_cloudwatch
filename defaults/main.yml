@@ -1,0 +1,20 @@
+---
+
+aws_cloudwatch_version: latest
+aws_cloudwatch_gpg: https://s3.amazonaws.com/amazoncloudwatch-agent/assets/amazon-cloudwatch-agent.gpg
+aws_cloudwatch_package: aws-cloudwatch
+aws_cloudwatch_install_path: /opt/aws/amazon-cloudwatch-agent
+aws_cloudwatch_common_config_file: "{{ aws_cloudwatch_install_path }}/etc/common-config.toml"
+aws_cloudwatch_config_file: "{{ aws_cloudwatch_install_path }}/etc/amazon-cloudwatch-agent.json"
+aws_cloudwatch_log_file: "{{ aws_cloudwatch_install_path }}/logs/amazon-cloudwatch-agent.log"
+aws_cloudwatch_logrotate_file_size: "10M"
+aws_cloudwatch_logrotate_files: 5
+aws_cloudwatch_ca_bundle_path: "/etc/pki/tls/certs/ca-bundle.crt"
+aws_cloudwatch_bin: "{{ aws_cloudwatch_install_path }}/bin/amazon-cloudwatch-agent-ctl"
+aws_cloudwatch_credential_profile:
+aws_cloudwatch_credential_file:
+aws_cloudwatch_mode: "{{ ((aws_cloudwatch_credential_profile is string and aws_cloudwatch_credential_profile | length > 0) and (aws_cloudwatch_credential_file is string and aws_cloudwatch_credential_file | length > 0)) | ternary('onPremise', 'ec2') }}"
+aws_cloudwatch_metrics_collection_interval: 60
+aws_cloudwatch_region:
+# aws_cloudwatch_configuration:
+aws_cloudwatch_role_debug: false

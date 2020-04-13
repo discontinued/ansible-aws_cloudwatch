@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+{% if ((aws_cloudwatch_credential_profile is string and aws_cloudwatch_credential_profile | length > 0) and (aws_cloudwatch_credential_file is string and aws_cloudwatch_credential_file | length > 0)) %}
+[credentials]
+    shared_credential_profile = "{{ aws_cloudwatch_credential_profile }}"
+    shared_credential_file = "{{ aws_cloudwatch_credential_file }}"
+{% endif %}
+
+[ssl]
+    ca_bundle_path = "{{ aws_cloudwatch_ca_bundle_path }}"

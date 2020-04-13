@@ -1,0 +1,21 @@
+---
+
+dependencies:
+  - { role: escapace.epel }
+  - { role: escapace.logrotate }
+
+galaxy_info:
+  description: aws cloudwatch
+  issue_tracker_url: https://github.com/escapace/ansible-aws-agents/issues
+  license: Apache-2.0
+  author: Escapace
+  min_ansible_version: 2.9
+  github_branch: master
+  platforms:
+  - name: EL
+    versions:
+    - 8
+
+  galaxy_tags:
+  - escapace
+  - cloudwatch

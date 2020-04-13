@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+
+{{ aws_cloudwatch_log_file }} {
+    size {{ aws_cloudwatch_logrotate_file_size }}
+    rotate {{ aws_cloudwatch_logrotate_files }}
+    compress
+    missingok
+    copytruncate
+    create 0644 root root
+}

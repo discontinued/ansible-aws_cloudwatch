@@ -1,0 +1,5 @@
+---
+
+- name: aws-cloudwatch reload
+  command: "{{ aws_cloudwatch_bin }} -a fetch-config -m {{ aws_cloudwatch_mode }} -c file:{{ aws_cloudwatch_config_file }} -s"
+  when: not aws_cloudwatch_role_debug

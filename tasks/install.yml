@@ -1,0 +1,103 @@
+---
+
+- name: install cloudwatch agent
+  vars:
+    aws_cloudwatch_url: "https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/{{ aws_cloudwatch_agent_arch }}/{{ aws_cloudwatch_version }}/amazon-cloudwatch-agent.rpm"
+  block:
+    - name: check architecture
+      assert:
+        # Linux: x86_64, FreeBSD: amd64
+        that: ansible_architecture in ['x86_64', 'amd64', 'aarch64']
+
+    - name: architecture is amd64
+      set_fact:
+        aws_cloudwatch_agent_arch: 'amd64'
+      when: ansible_architecture in ['x86_64', 'amd64']
+
+    - name: architecture is arm64
+      set_fact:
+        aws_cloudwatch_agent_arch: 'arm64'
+      when: ansible_architecture in ['aarch64']
+
+    - name: ensure a list of packages installed
+      package:
+        name: "{{ packages }}"
+      vars:
+        packages:
+         - gnupg2
+         - collectd
+         - ca-certificates
+
+    - name: create temporary directory
+      tempfile:
+        state: directory
+        suffix: amazon-cloudwatch-agent
+      register: aws_cloudwatch_tempdir
+      changed_when: false
+
+    - name: download cloudwatch agent gpg key
+      get_url:
+        url: "{{ aws_cloudwatch_gpg }}"
+        dest: "{{ aws_cloudwatch_tempdir.path }}/amazon-cloudwatch-agent.gpg"
+        timeout: 300
+      changed_when: false
+
+    - name: download cloudwatch agent package
+      get_url:
+        url: "{{ aws_cloudwatch_url }}"
+        dest: "{{ aws_cloudwatch_tempdir.path }}/amazon-cloudwatch-agent.rpm"
+        timeout: 300
+      changed_when: false
+
+    - name: download cloudwatch agent package signature
+      get_url:
+        url: "{{ aws_cloudwatch_url }}.sig"
+        dest: "{{ aws_cloudwatch_tempdir.path }}/amazon-cloudwatch-agent.rpm.sig"
+        timeout: 300
+      changed_when: false
+
+    - name: add cloudwatch agent package key
+      command: gpg --import amazon-cloudwatch-agent.gpg
+      changed_when: false
+      args:
+        chdir: "{{ aws_cloudwatch_tempdir.path }}"
+
+    - name: add cloudwatch agent package key
+      rpm_key:
+        state: present
+        key: "{{ aws_cloudwatch_gpg }}"
+
+    - name: verify cloudwatch agent package signature
+      command: gpg --verify amazon-cloudwatch-agent.rpm.sig amazon-cloudwatch-agent.rpm
+      register: aws_cloudwatch_signature
+      failed_when: >
+        ('BAD' in aws_cloudwatch_signature.stderr) or
+        (aws_cloudwatch_signature.rc > 0)
+      ignore_errors: yes
+      changed_when: false
+      args:
+        chdir: "{{ aws_cloudwatch_tempdir.path }}"
+
+    - name: install cloudwatch agent
+      yum:
+        name: "{{ aws_cloudwatch_tempdir.path }}/amazon-cloudwatch-agent.rpm"
+        state: present
+      when: >
+        ('BAD' not in aws_cloudwatch_signature.stderr) and
+        (aws_cloudwatch_signature.rc == 0)
+
+    - name: remove temporary directory
+      file:
+        state: absent
+        path: "{{ aws_cloudwatch_tempdir.path }}"
+      changed_when: false
+
+    - name: bad signature
+      fail:
+        msg: "failed to verify amazon-cloudwatch-agent.rpm package signature"
+      when: >
+        ('BAD' in aws_cloudwatch_signature.stderr) or
+        (aws_cloudwatch_signature.rc > 0)
+
+    - name: enable amazon-cloudwatch-agent
+      service: name=amazon-cloudwatch-agent enabled=yes

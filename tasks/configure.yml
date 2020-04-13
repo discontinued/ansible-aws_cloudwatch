@@ -1,0 +1,27 @@
+---
+
+- name: aws-cloudwatch logrotate configuration file
+  template:
+    src: aws-cloudwatch.j2
+    dest: /etc/logrotate.d/aws-cloudwatch
+    owner: root
+    group: root
+    mode: 0644
+
+- name: aws-cloudwatch common configuration file
+  template:
+    src: common-config.toml.j2
+    dest: "{{ aws_cloudwatch_common_config_file }}"
+    owner: cwagent
+    group: cwagent
+    mode: 0640
+  notify: aws-cloudwatch reload
+
+- name: aws-cloudwatch configuration file
+  copy:
+    content: "{{ (aws_cloudwatch_configuration is defined | ternary(aws_cloudwatch_configuration, lookup('template', 'templates/amazon-cloudwatch-agent.json.j2'))) | to_nice_json }}"
+    dest: "{{ aws_cloudwatch_config_file }}"
+    owner: cwagent
+    group: cwagent
+    mode: 0640
+  notify: aws-cloudwatch reload

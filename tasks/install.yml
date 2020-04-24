@@ -99,5 +99,11 @@
         ('BAD' in aws_cloudwatch_signature.stderr) or
         (aws_cloudwatch_signature.rc > 0)
 
+    - name: add "cwagent" user to the "logread" group
+      user:
+        name: cwagent
+        groups: logread
+        append: yes
+
     - name: enable amazon-cloudwatch-agent
       service: name=amazon-cloudwatch-agent enabled=yes

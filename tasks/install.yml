@@ -81,6 +81,7 @@
     - name: install cloudwatch agent
       yum:
         name: "{{ aws_cloudwatch_tempdir.path }}/amazon-cloudwatch-agent.rpm"
+        disable_gpg_check: yes
         state: present
       when: >
         ('BAD' not in aws_cloudwatch_signature.stderr) and

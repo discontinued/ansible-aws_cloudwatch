@@ -4,4 +4,4 @@
   vars:
     aws_cloudwatch_role_debug: true
   roles:
-    - role: escapace.aws-cloudwatch
+    - role: escapace.aws_cloudwatch
